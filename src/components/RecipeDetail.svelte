@@ -1,4 +1,5 @@
 <script lang="ts">
+    // Ensure this matches the recipe structure your API returns
     export let recipe: {
         id: number;
         title: string;
@@ -11,12 +12,47 @@
         category: string;
         cuisine: string;
         imageUrl: string;
-        createdAt: string;
+        createdAt: string; // Use string for dates from API initially
         updatedAt: string;
     };
+
+    let deleting: boolean = false; // To show loading state for delete button
+
+    const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
+
+
+    async function handleDelete() {
+        // ... (confirmation dialog) ...
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${recipe.title}"? This action cannot be undone.`);
+
+        if (confirmDelete) {
+            deleting = true;
+            try {
+                // Make sure these are BACKTICKS (`) around the URL string!
+                const response = await fetch(`${API_URL}/${recipe.id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to delete recipe: ${response.status} - ${errorText || 'Server error'}`);
+                }
+
+                alert(`Recipe "${recipe.title}" successfully deleted!`);
+                window.location.href = '/';
+
+            } catch (error: any) {
+                console.error("Error deleting recipe:", error);
+                alert(`Error deleting recipe: ${error.message || 'An unexpected error occurred.'}`);
+            } finally {
+                deleting = false;
+            }
+        }
+    }
 </script>
 
-<div class="card bg-base-100 shadow-xl p-6"> <figure>
+<div class="card bg-base-100 shadow-xl p-6">
+    <figure>
         {#if recipe.imageUrl}
             <img src={recipe.imageUrl} alt={recipe.title} class="rounded-box w-full max-h-80 object-cover mb-4" />
         {:else}
@@ -31,7 +67,8 @@
 
         <div class="flex flex-wrap gap-2 mb-6">
             {#if recipe.category}
-                <div class="badge badge-lg badge-primary">{recipe.category}</div> {/if}
+                <div class="badge badge-lg badge-primary">{recipe.category}</div>
+            {/if}
             {#if recipe.cuisine}
                 <div class="badge badge-lg badge-secondary">{recipe.cuisine}</div>
             {/if}
@@ -46,24 +83,45 @@
             {/if}
         </div>
 
-        <div class="prose max-w-none mb-6"> <h2 class="text-2xl font-semibold mb-2">Ingredients</h2>
+        <div class="prose max-w-none mb-6">
+            <h2 class="text-2xl font-semibold mb-2">Ingredients</h2>
             <ul class="list-disc list-inside">
-                {#each recipe.ingredients.split(',').map(s => s.trim()) as ingredient}
-                    <li>{ingredient}</li>
-                {/each}
+                {#if recipe.ingredients}
+                    {#each recipe.ingredients.split(',').map(s => s.trim()) as ingredient}
+                        <li>{ingredient}</li>
+                    {/each}
+                {/if}
             </ul>
 
             <h2 class="text-2xl font-semibold mt-6 mb-2">Instructions</h2>
             <ol class="list-decimal list-inside">
-                {#each recipe.instructions.split('.').map(s => s.trim()).filter(Boolean) as instruction}
-                    <li>{instruction}</li>
-                {/each}
+                {#if recipe.instructions}
+                    {#each recipe.instructions.split('.').map(s => s.trim()).filter(Boolean) as instruction}
+                        <li>{instruction}</li>
+                    {/each}
+                {/if}
             </ol>
         </div>
 
         <div class="text-sm text-gray-500 mt-auto">
-            <p>Created: {new Date(recipe.createdAt).toLocaleDateString()}</p>
-            <p>Last Updated: {new Date(recipe.updatedAt).toLocaleDateString()}</p>
+            {#if recipe.createdAt}
+                <p>Created: {new Date(recipe.createdAt).toLocaleDateString()}</p>
+            {/if}
+            {#if recipe.updatedAt}
+                <p>Last Updated: {new Date(recipe.updatedAt).toLocaleDateString()}</p>
+            {/if}
+        </div>
+
+        <div class="mt-6 flex justify-end gap-2">
+            <a href={`/recipes/edit/${recipe.id}`} class="btn btn-warning">Edit Recipe</a>
+            <button on:click={handleDelete} class="btn btn-error" disabled={deleting}>
+                {#if deleting}
+                    <span class="loading loading-spinner"></span>
+                    Deleting...
+                {:else}
+                    Delete Recipe
+                {/if}
+            </button>
         </div>
     </div>
 </div>
