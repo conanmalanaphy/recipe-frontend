@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
 
-    // Add a new prop to receive the recipe ID from the URL for editing
-    export let recipeId: string | null = null; // Can be a recipe ID string or null (for create mode)
+    // Add a new prop to receive the recipe ID from the URL (no longer strictly needed for fetch here)
+   export const recipeId: string | null = null;
 
-    // Prop to receive initial recipe data (now optional as we might fetch it)
-    export let initialRecipe: any | null = null; // Can be a recipe object or null
+    // Prop to receive initial recipe data (now expected to be pre-fetched by Astro)
+    export let initialRecipe: any | null = null; // This will now typically contain the recipe object
+
 
     // Form state variables
     let id: number | null = initialRecipe?.id || null; // Store numeric ID for PUT requests
@@ -23,7 +24,7 @@
     let submitting: boolean = false;
     let successMessage: string = '';
     let errorMessage: string = '';
-    let isLoading: boolean = false; // New loading state for fetching initial data
+    let isLoading: boolean = false; // No longer needed for initial fetch, but keeping for clarity
 
     const API_BASE_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
 
@@ -47,32 +48,12 @@
         // createdAt and updatedAt are not for form fields
     }
 
-    onMount(async () => {
-        // If recipeId is provided (we're in edit mode) AND initialRecipe wasn't already passed (e.g., from staticProps),
-        // then fetch the recipe data on the client side.
-        if (recipeId && !initialRecipe) {
-            isLoading = true;
-            errorMessage = '';
-            try {
-                const response = await fetch(`${API_BASE_URL}/${recipeId}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error(`Recipe with ID ${recipeId} not found.`);
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const fetchedRecipe = await response.json();
-                populateForm(fetchedRecipe); // Populate form fields
-            } catch (error: any) {
-                console.error("Error fetching recipe for edit:", error);
-                errorMessage = error.message || "Failed to load recipe for editing.";
-            } finally {
-                isLoading = false;
-            }
-        } else if (initialRecipe) {
-            // If initialRecipe was passed (e.g., from SSR or SSG on a different page), use it directly
+    onMount(() => {
+        // Populate form fields if initialRecipe prop is provided by Astro
+        if (initialRecipe) {
             populateForm(initialRecipe);
         }
+        // No client-side fetch for initial data is needed here anymore as getStaticPaths provides it
     });
 
 
@@ -146,8 +127,7 @@
     <div class="card-body p-0">
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">{id ? 'Edit Recipe' : 'Share Your Recipe'}</h2>
 
-        {#if isLoading}
-            <div class="flex justify-center items-center h-48">
+        {#if isLoading} <div class="flex justify-center items-center h-48">
                 <span class="loading loading-spinner loading-lg"></span>
                 <p class="ml-4 text-gray-600">Loading recipe data...</p>
             </div>
@@ -169,13 +149,13 @@
                         <textarea id="description" bind:value={description} class="textarea textarea-bordered h-24" required placeholder="A brief overview of your recipe, its origin, or what makes it special..."></textarea>
                     </div>
 
-                    <div class="form-control">
-                        <label for="imageUrl" class="label"><span class="label-text text-lg font-semibold">Image URL:</span></label>
-                        <input type="url" id="imageUrl" bind:value={imageUrl} class="input input-bordered w-full" placeholder="https://example.com/your-recipe-image.jpg" />
-                        <label class="label">
-                            <span class="label-text-alt text-gray-500">Link to a high-quality image of your delicious recipe.</span>
-                        </label>
-                    </div>
+                   <div class="form-control">
+    <label for="imageUrl" class="label">
+        <span class="label-text text-lg font-semibold">Image URL:</span>
+    </label>
+    <input type="url" id="imageUrl" bind:value={imageUrl} class="input input-bordered w-full" placeholder="https://example.com/your-recipe-image.jpg" />
+    <span class="label-text-alt text-gray-500 mt-1 block">Link to a high-quality image of your delicious recipe.</span>
+</div>
                 </div>
             </div>
 
@@ -259,4 +239,5 @@
                 </div>
             {/if}
             {/if}
+    </div>
 </form>

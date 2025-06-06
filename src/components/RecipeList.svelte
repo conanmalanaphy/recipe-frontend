@@ -2,13 +2,14 @@
     import { onMount } from 'svelte'; // Svelte lifecycle hook
     import RecipeCard from './RecipeCard.svelte'; // Import the RecipeCard component
 
-    const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
 
     let recipes: any[] = []; // Array to hold fetched recipes
     let isLoading: boolean = true;
     let errorMessage: string = '';
 
     onMount(async () => {
+    const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
+
         try {
             const response = await fetch(API_URL);
             if (!response.ok) {

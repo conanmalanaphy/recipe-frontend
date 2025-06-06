@@ -18,12 +18,12 @@
 
     let deleting: boolean = false; // To show loading state for delete button
 
-    const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
-
+    
 
     async function handleDelete() {
         // ... (confirmation dialog) ...
     const confirmDelete = window.confirm(`Are you sure you want to delete "${recipe.title}"? This action cannot be undone.`);
+    const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
 
         if (confirmDelete) {
             deleting = true;

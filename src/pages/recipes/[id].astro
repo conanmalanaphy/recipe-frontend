@@ -7,10 +7,9 @@ import '../../styles/global.css'
 export async function getStaticPaths() {
   // This function generates all possible paths for this dynamic route during build time (SSG)
   // For now, we'll fetch all IDs from your deployed API.
-  const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
   let recipes = [];
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch('https://recipe-backend-3ata.onrender.com/api/recipes');
     if (!response.ok) {
       console.error(`Error fetching recipes for static paths: ${response.status}`);
       // Fallback to empty array if API is down or no recipes
@@ -38,9 +37,8 @@ let recipe = initialRecipeData;
 let errorMessage = '';
 
 if (!recipe) { // Only fetch if not already passed from getStaticPaths
-    const API_URL = `https://recipe-backend-3ata.onrender.com/api/recipes/${id}`;
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(`https://recipe-backend-3ata.onrender.com/api/recipes/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

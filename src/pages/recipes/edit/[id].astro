@@ -1,15 +1,60 @@
 ---
 // src/pages/recipes/edit/[id].astro
-// This page will be a static shell for the client-side Svelte form.
-// No getStaticPaths needed here.
-export const prerender = false; // <--- ADD THIS LINE!
-
+// This page will now be statically pre-rendered for each existing recipe.
 import RecipeForm from '../../../components/RecipeForm.svelte'; // Adjust path as needed
+
+
+// *** getStaticPaths to pre-render edit pages ***
+export async function getStaticPaths() {
+  // Fetch all recipe IDs from your deployed API at build time
+  let recipes = [];
+  try {
+    const response = await fetch('https://recipe-backend-3ata.onrender.com/api/recipes');
+    if (!response.ok) {
+      console.error(`Error fetching recipes for edit static paths: ${response.status}`);
+      // Fallback to empty array if API is down or no recipes
+      return [];
+    }
+    recipes = await response.json();
+  } catch (error) {
+    console.error("Failed to fetch recipes for edit static paths:", error);
+    return [];
+  }
+
+  // Generate a path for each recipe ID
+  return recipes.map(recipe => ({
+    params: { id: recipe.id.toString() }, // Ensure ID is a string for the URL
+    props: { initialRecipeData: recipe }, // Pass initial recipe data as props for pre-filling
+  }));
+}
+// *** END NEW ***
+
 
 // Get the recipe ID from the URL parameters
 const { id } = Astro.params;
+// Get initial recipe data passed from getStaticPaths
+const { initialRecipeData } = Astro.props;
 
-// No server-side fetch here for initial recipe data; Svelte component will do it.
+// Fetch the specific recipe if not passed via props (e.g., for dev server without pre-rendering)
+let recipeData = initialRecipeData; // Use data from getStaticPaths first
+let errorMessage = '';
+
+if (!recipeData) { // If data wasn't pre-rendered or passed via props, fetch it on the server
+    try {
+        const response = await fetch(`https://recipe-backend-3ata.onrender.com/api/recipes/${id}`);
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error(`Recipe with ID ${id} not found.`);
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        recipeData = await response.json();
+    } catch (error) {
+        console.error(`Failed to fetch recipe ${id} for editing:`, error);
+        errorMessage = error.message || "Failed to load recipe for editing.";
+        recipeData = null; // Ensure recipeData is null on error
+    }
+}
 ---
 
 <!DOCTYPE html>
@@ -17,18 +62,32 @@ const { id } = Astro.params;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{id ? `Edit Recipe ${id}` : 'Edit Recipe'} - My Recipe App</title>
+    <title>{recipeData ? `Edit ${recipeData.title}` : 'Edit Recipe'} - My Recipe App</title>
     <link rel="stylesheet" href="/src/styles/global.css" />
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto p-6">
-        <a href={id ? `/recipes/${id}` : '/'} class="btn btn-ghost mb-4">← Back to Recipe</a>
+        <a href={recipeData ? `/recipes/${recipeData.id}` : '/'} class="btn btn-ghost mb-4">← Back to Recipe</a>
 
         <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">
-            {id ? `Edit: Recipe ${id}` : 'Edit Recipe'}
+            {recipeData ? `Edit: ${recipeData.title}` : 'Edit Recipe'}
         </h1>
 
-        <RecipeForm recipeId={id} client:load />
+        {errorMessage && (
+            <div role="alert" class="alert alert-error mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{errorMessage}</span>
+            </div>
+        )}
+
+        {recipeData ? (
+            <RecipeForm initialRecipe={recipeData} client:load />
+        ) : (
+            // Only show loading if there's no error message
+            !errorMessage && (
+                <p class="text-center text-gray-600">Loading recipe for editing...</p>
+            )
+        )}
     </div>
 </body>
 </html>
