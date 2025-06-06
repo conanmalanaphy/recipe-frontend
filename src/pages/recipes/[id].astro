@@ -1,0 +1,78 @@
+---
+// src/pages/recipes/[id].astro
+import RecipeCard from '../../components/RecipeCard.svelte'; // Adjust path if needed
+import RecipeDetail from '~/components/RecipeDetail.svelte'; 
+
+export async function getStaticPaths() {
+  // This function generates all possible paths for this dynamic route during build time (SSG)
+  // For now, we'll fetch all IDs from your deployed API.
+  const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
+  let recipes = [];
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+      console.error(`Error fetching recipes for static paths: ${response.status}`);
+      // Fallback to empty array if API is down or no recipes
+      return [];
+    }
+    recipes = await response.json();
+  } catch (error) {
+    console.error("Failed to fetch recipes for static paths:", error);
+    return [];
+  }
+
+  return recipes.map(recipe => ({
+    params: { id: recipe.id.toString() }, // Ensure ID is a string for the URL
+    props: { initialRecipeData: recipe }, // Optionally pass initial data as props
+  }));
+}
+
+// Get the recipe ID from the URL parameters
+const { id } = Astro.params;
+// Get initial recipe data passed from getStaticPaths if available
+const { initialRecipeData } = Astro.props;
+
+// Fetch the specific recipe if not passed via props (e.g., for dev server or direct access)
+let recipe = initialRecipeData;
+let errorMessage = '';
+
+console.log(id)
+if (!recipe) { // Only fetch if not already passed from getStaticPaths
+    const API_URL = `https://recipe-backend-3ata.onrender.com/api/recipes/${id}`;
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        recipe = await response.json();
+    } catch (error) {
+        console.error(`Failed to fetch recipe ${id}:`, error);
+        errorMessage = "Failed to load recipe details. Please try again.";
+        recipe = null; // Ensure recipe is null on error
+    }
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{recipe ? recipe.title : 'Recipe Not Found'} - Recipe App</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <a href="/" class="btn btn-ghost mb-4">← Back to Recipes</a> {errorMessage && (
+            <p class="text-error text-center mb-4">{errorMessage}</p> )}
+
+        {recipe ? (
+            <RecipeDetail recipe={recipe} client:load />
+        ) : (
+            !errorMessage && (
+                <p class="text-center text-gray-600">Recipe not found.</p>
+            )
+        )}
+    </div>
+</body>
+</html>

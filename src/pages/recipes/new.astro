@@ -1,0 +1,25 @@
+---
+// src/pages/recipes/new.astro
+import RecipeForm from '../../components/RecipeForm.svelte'; // Import your Svelte form component
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Recipe - My Recipe App</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <a href="/" class="btn btn-ghost mb-4">← Back to Recipes</a>
+
+        <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">
+            Add a New Recipe
+        </h1>
+
+        <RecipeForm client:load />
+    </div>
+</body>
+</html>

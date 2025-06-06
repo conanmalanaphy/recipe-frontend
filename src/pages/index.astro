@@ -1,11 +1,59 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+// src/pages/index.astro
+// This is the "frontmatter" where you write JavaScript/TypeScript
+// to fetch data during the build process (SSG) or on request (SSR).
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import RecipeCard from '../components/RecipeCard.svelte'; // <-- NEW: Import your Svelte component
+
+// Your deployed Spring Boot API URL
+const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
+let recipes = [];
+let errorMessage = '';
+
+try {
+    // Fetch data from your deployed backend API during the build process
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    recipes = await response.json();
+} catch (error) {
+    console.error("Failed to fetch recipes:", error);
+    errorMessage = "Failed to load recipes. Please try again later.";
+}
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Recipe App</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">
+            My Recipe Cookbook
+        </h1>
+		<div class="text-center mb-8">	
+			<a href="/recipes/new" class="btn btn-primary btn-lg">Add New Recipe</a> 
+		</div>
+        {errorMessage && (
+            <p class="text-red-500 text-center mb-4">{errorMessage}</p>
+        )}
+
+        {recipes.length > 0 ? (
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recipes.map(recipe => (
+                    <RecipeCard recipe={recipe} client:load />
+                ))}
+            </div>
+        ) : (
+            !errorMessage && (
+                <p class="text-center text-gray-600">No recipes found. Try adding some via the API!</p>
+            )
+        )}
+    </div>
+</body>
+</html>

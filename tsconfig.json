@@ -1,5 +1,22 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
+  "compilerOptions": {
+    // Essential for resolving "~/" alias paths
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+    // Svelte-specific compiler options (often needed for Svelte's compilation model)
+    "isolatedModules": true, // Necessary for Svelte's compiler
+    "lib": ["es2022", "dom", "dom.iterable"], // Common libraries for web development
+    "types": ["svelte"], // Explicitly include Svelte types
+
+    // No "jsx" or "jsxImportSource" options needed for Svelte (these are for React/Preact)
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "**/*", // Includes all .ts, .js, .astro, and .svelte files
+    "*.svelte" // Explicitly ensure .svelte files are included for type checking
+  ],
   "exclude": ["dist"]
 }
