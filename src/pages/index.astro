@@ -4,6 +4,7 @@
 // to fetch data during the build process (SSG) or on request (SSR).
 
 import RecipeCard from '../components/RecipeCard.svelte'; // <-- NEW: Import your Svelte component
+import '../styles/global.css'; // <--- ADD THIS LINE!
 
 // Your deployed Spring Boot API URL
 const API_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
@@ -29,7 +30,6 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Recipe App</title>
-    <link rel="stylesheet" href="/src/styles/global.css" />
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto p-6">

@@ -2,6 +2,7 @@
 // src/pages/recipes/[id].astro
 import RecipeCard from '../../components/RecipeCard.svelte'; // Adjust path if needed
 import RecipeDetail from '~/components/RecipeDetail.svelte'; 
+import '../../styles/global.css'
 
 export async function getStaticPaths() {
   // This function generates all possible paths for this dynamic route during build time (SSG)
@@ -36,7 +37,6 @@ const { initialRecipeData } = Astro.props;
 let recipe = initialRecipeData;
 let errorMessage = '';
 
-console.log(id)
 if (!recipe) { // Only fetch if not already passed from getStaticPaths
     const API_URL = `https://recipe-backend-3ata.onrender.com/api/recipes/${id}`;
     try {
@@ -59,7 +59,6 @@ if (!recipe) { // Only fetch if not already passed from getStaticPaths
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{recipe ? recipe.title : 'Recipe Not Found'} - Recipe App</title>
-    <link rel="stylesheet" href="/src/styles/global.css" />
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto p-6">
