@@ -28,7 +28,7 @@
 
 
     const API_BASE_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes';
-    const AI_PARSE_URL = 'http://localhost:8080/api/recipes/parse-image'; // Use localhost for AI endpoint during dev
+    const AI_PARSE_URL = 'https://recipe-backend-3ata.onrender.com/api/recipes/parse-image'; 
 
     $: submitButtonText = id ? 'Update Recipe' : 'Add Recipe';
     $: submittingButtonText = id ? 'Updating Recipe...' : 'Adding Recipe...';
